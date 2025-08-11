@@ -31,12 +31,17 @@ const Products = () => {
   }, []);
 
   const handleAiSearch = async () => {
+    console.log("🔍 AI Search Triggered with query:", searchQuery);
+    console.log("📦 Sending products:", data);
+
     if (!searchQuery.trim()) {
-      setFilter(data); // reset to all
+      console.log("⚠️ Empty search query — resetting filter");
+      setFilter(data);
       return;
     }
+
     try {
-      const response = await fetch("/api/v1/ai-search", {
+      const response = await fetch(`http://localhost:4001/api/v1/ai-search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -45,15 +50,20 @@ const Products = () => {
         }),
       });
 
+      console.log("📡 API Response status:", response.status);
+
       const result = await response.json();
+      console.log("✅ API Result:", result);
+
       if (result.success) {
         const matchedProducts = data.filter((p) => result.ids.includes(p.id));
+        console.log("🎯 Matched products:", matchedProducts);
         setFilter(matchedProducts);
       } else {
-        console.error("AI Search error:", result.message);
+        console.error("❌ AI Search error:", result.message);
       }
     } catch (err) {
-      console.error("AI Search error:", err);
+      console.error("💥 AI Search fetch error:", err);
     }
   };
 

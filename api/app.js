@@ -4,12 +4,21 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
 
+const cors = require('cors'); // Enable CORS for development
+
 const app = express();
 
 // config
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: 'backend/config/config.env' });
 }
+
+// Allow CORS from frontend
+app.use(cors({
+  origin: 'http://localhost:3000', // your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json());
 app.use(cookieParser());
