@@ -11,6 +11,9 @@ const Products = () => {
   const [filter, setFilter] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [sortOption, setSortOption] = useState("default");
 
   const dispatch = useDispatch();
 
@@ -31,11 +34,7 @@ const Products = () => {
   }, []);
 
   const handleAiSearch = async () => {
-    console.log("🔍 AI Search Triggered with query:", searchQuery);
-    console.log("📦 Sending products:", data);
-
     if (!searchQuery.trim()) {
-      console.log("⚠️ Empty search query — resetting filter");
       setFilter(data);
       return;
     }
@@ -50,14 +49,10 @@ const Products = () => {
         }),
       });
 
-      console.log("📡 API Response status:", response.status);
-
       const result = await response.json();
-      console.log("✅ API Result:", result);
 
       if (result.success) {
         const matchedProducts = data.filter((p) => result.ids.includes(p.id));
-        console.log("🎯 Matched products:", matchedProducts);
         setFilter(matchedProducts);
       } else {
         console.error("❌ AI Search error:", result.message);
@@ -67,9 +62,59 @@ const Products = () => {
     }
   };
 
+  const applyFiltersAndSort = () => {
+    let updatedList = [...data];
+
+    // Apply category filter
+    // This part is left for you to implement if you want to combine it with other filters.
+    // For now, the existing filterProduct function can be used independently.
+
+    // Apply price filter
+    if (minPrice !== "" || maxPrice !== "") {
+      updatedList = updatedList.filter((item) => {
+        const min = minPrice !== "" ? parseFloat(minPrice) : 0;
+        const max = maxPrice !== "" ? parseFloat(maxPrice) : Infinity;
+        return item.price >= min && item.price <= max;
+      });
+    }
+
+    // Apply sorting
+    if (sortOption === "price-asc") {
+      updatedList.sort((a, b) => a.price - b.price);
+    } else if (sortOption === "price-desc") {
+      updatedList.sort((a, b) => b.price - a.price);
+    } else if (sortOption === "rating-desc") {
+      updatedList.sort((a, b) => b.rating.rate - a.rating.rate);
+    }
+
+    setFilter(updatedList);
+  };
+
   const filterProduct = (cat) => {
     const updatedList = data.filter((item) => item.category === cat);
     setFilter(updatedList);
+  };
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [minPrice, maxPrice, sortOption, data]);
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<i key={`full-${i}`} className="fa fa-star text-warning"></i>);
+    }
+    if (hasHalfStar) {
+      stars.push(<i key="half" className="fa fa-star-half-o text-warning"></i>);
+    }
+    const remainingStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < remainingStars; i++) {
+      stars.push(<i key={`empty-${i}`} className="fa fa-star-o text-warning"></i>);
+    }
+    return stars;
   };
 
   const Loading = () => (
@@ -87,7 +132,6 @@ const Products = () => {
 
   const ShowProducts = () => (
     <>
-      {/* Category Buttons */}
       <div className="buttons text-center py-3">
         <button className="btn btn-outline-dark btn-sm m-2" onClick={() => setFilter(data)}>All</button>
         <button className="btn btn-outline-dark btn-sm m-2" onClick={() => filterProduct("men's clothing")}>Men's Clothing</button>
@@ -96,13 +140,17 @@ const Products = () => {
         <button className="btn btn-outline-dark btn-sm m-2" onClick={() => filterProduct("electronics")}>Electronics</button>
       </div>
 
-      {/* Products Grid */}
       {filter.map((product) => (
         <div key={product.id} className="col-md-4 col-sm-6 col-xs-8 col-12 mb-4">
           <div className="card text-center h-100">
             <img className="card-img-top p-3" src={product.image} alt="Card" height={300} />
             <div className="card-body">
               <h5 className="card-title">{product.title.substring(0, 12)}...</h5>
+              <div className="my-2">
+                {renderStars(product.rating.rate)}
+                <br />
+                <span className="text-muted">({product.rating.count} reviews)</span>
+              </div>
               <p className="card-text">{product.description.substring(0, 90)}...</p>
             </div>
             <ul className="list-group list-group-flush">
@@ -129,9 +177,9 @@ const Products = () => {
         </div>
       </div>
 
-      {/* AI Search Bar */}
       <div className="row mb-4 justify-content-center">
-        <div className="col-md-8">
+        {/* AI Search Bar */}
+        <div className="col-md-6 mb-3">
           <div className="input-group">
             <input
               type="text"
@@ -143,6 +191,37 @@ const Products = () => {
             <button className="btn btn-dark" onClick={handleAiSearch}>
               Search
             </button>
+          </div>
+        </div>
+
+        {/* Price Filter & Sort Controls */}
+        <div className="col-md-6 mb-3">
+          <div className="input-group">
+            <span className="input-group-text">Price Range</span>
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Min"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+            />
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Max"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+            />
+            <select
+              className="form-select"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              <option value="default">Sort By...</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating-desc">Rating: High to Low</option>
+            </select>
           </div>
         </div>
       </div>
