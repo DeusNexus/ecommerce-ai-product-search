@@ -1,7 +1,3 @@
-Here’s a tailored **README.md** draft for your repo:
-
----
-
 # E-commerce AI Product Search
 
 A full-stack e-commerce demo with AI-powered natural language search.
