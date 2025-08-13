@@ -1,9 +1,3 @@
-### README.md Update
-
-I've updated the `README.md` to reflect the new features you've implemented, specifically the visual ratings, price filtering, and product sorting. The new content is integrated into the existing structure.
-
------
-
 # E-commerce AI Product Search
 
 A full-stack e-commerce demo with AI-powered natural language search.
